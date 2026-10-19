@@ -213,27 +213,20 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem}
   var GAS='https://script.google.com/macros/s/AKfycbzcBr1noTfZHrnAqmWL8DBOh3UIijUnbZOcGC2tlfCHAu17Qr1H2lzemDkc3PGE-ih3gg/exec';
   var st=document.getElementById('status'),btn=document.getElementById('send');
   function toB64(f){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(String(r.result).split(',')[1]||'');};r.onerror=function(){no(new Error('No se pudo leer el archivo'));};r.readAsDataURL(f);});}
-  function openWA(w,url){
-    if(w&&!w.closed){w.location.href=url;return;}
-    st.innerHTML='Pedido listo. <a href="'+url+'" target="_blank" rel="noopener">Continuar en WhatsApp</a>';
-  }
   document.getElementById('f').addEventListener('submit',function(e){
     e.preventDefault();
     var nombre=document.getElementById('n').value,f=fi.files[0];
     var m='Hola Sr_Nube3D, soy '+nombre+'. Quiero cotizar: '+document.getElementById('t').value+'. Detalles: '+document.getElementById('d').value+extra();
     var url='https://wa.me/'+WA+'?text='+encodeURIComponent(m);
     if(!f){window.open(url,'_blank','noopener');return;}
-    var w=window.open('about:blank','_blank');
     btn.disabled=true;st.textContent='Subiendo tu archivo, no cierres la página...';
     toB64(f).then(function(b64){
-      return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({nombre:nombre,resumen:m,nombreArchivo:f.name,archivo:b64})});
-    }).then(function(r){return r.json();}).then(function(j){
-      if(!j.ok)throw new Error(j.error||'Error al subir');
-      st.textContent='Archivo recibido. Abriendo WhatsApp...';
-      openWA(w,url);
+      return fetch(GAS,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({nombre:nombre,resumen:m,nombreArchivo:f.name,archivo:b64})});
+    }).then(function(){
+      st.innerHTML='Archivo recibido. Abriendo WhatsApp... <a href="'+url+'">Si no se abre, pulsa aquí</a>';
+      window.location.href=url;
     }).catch(function(){
-      st.innerHTML='No pude subir el archivo. <a href="'+url+'" target="_blank" rel="noopener">Continuar en WhatsApp</a> y adjúntalo ahí con el clip.';
-      if(w&&!w.closed)w.close();
+      st.innerHTML='No pude subir el archivo. <a href="'+url+'">Continuar en WhatsApp</a> y adjúntalo ahí con el clip.';
     }).then(function(){btn.disabled=false;});
   });
 })();
