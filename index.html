@@ -160,8 +160,9 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem}
       <label>Material<select id="mat"><option>PLA</option><option>PETG</option><option>TPU flexible</option><option>No sé, recomiéndame</option></select></label>
       <div class="two"><label>Cantidad<input id="qty" type="number" min="1" value="1"></label><label>Color<input id="col" placeholder="Ej: rojo"></label></div>
       <label>Detalles (medidas, uso, plazo)<textarea id="d"></textarea></label>
-      <div class="dz" id="dz"><strong>Sube tu archivo 3D (STL u OBJ)</strong><span>Arrástralo aquí o elige uno</span><input id="file" type="file" accept=".stl,.obj" aria-label="Archivo STL u OBJ"><span id="fname" aria-live="polite">Ningún archivo seleccionado</span><small>Al enviar, se abre WhatsApp: adjunta ahí tu archivo para que pueda revisarlo.</small></div>
-      <button class="btn btn-main" type="submit">Enviar por WhatsApp</button>
+      <div class="dz" id="dz"><strong>Sube tu archivo 3D (STL u OBJ)</strong><span>Arrástralo aquí o elige uno</span><input id="file" type="file" accept=".stl,.obj" aria-label="Archivo STL u OBJ"><span id="fname" aria-live="polite">Ningún archivo seleccionado</span><small>Máximo 15 MB. Se guarda de forma segura y solo yo puedo verlo.</small></div>
+      <button class="btn btn-main" type="submit" id="send">Enviar pedido</button>
+      <p class="note" id="status" role="status" aria-live="polite"></p>
     </form>
   </div>
 </section>
@@ -195,7 +196,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem}
   function setFile(f){
     if(!f){fn.textContent='Ningún archivo seleccionado';return;}
     if(!/\.(stl|obj)$/i.test(f.name)){fi.value='';fn.textContent='Formato no válido: sube un archivo .stl u .obj';return;}
-    if(f.size>50*1048576){fi.value='';fn.textContent='El archivo pesa más de 50 MB: envíalo directo por WhatsApp';return;}
+    if(f.size>15*1048576){fi.value='';fn.textContent='El archivo pesa más de 15 MB: envíalo por WhatsApp o con un enlace de Drive/WeTransfer';return;}
     fn.textContent=f.name+' ('+(f.size/1048576).toFixed(1)+' MB)';
   }
   fi.addEventListener('change',function(){setFile(fi.files[0]);});
@@ -205,14 +206,35 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem}
   function extra(){
     var s='. Material: '+document.getElementById('mat').value+'. Cantidad: '+document.getElementById('qty').value,c=document.getElementById('col').value;
     if(c)s+='. Color: '+c;
-    if(fi.files[0])s+='. Archivo 3D: '+fi.files[0].name+' (lo adjunto en este chat)';
+    if(fi.files[0])s+='. Archivo 3D: '+fi.files[0].name+' (ya lo subí en la página)';
     return s;
   }
   var WA='56949617656'; // WhatsApp de Sr_Nube3D (código de país + número, sin + ni espacios)
+  var GAS='https://script.google.com/macros/s/AKfycbzcBr1noTfZHrnAqmWL8DBOh3UIijUnbZOcGC2tlfCHAu17Qr1H2lzemDkc3PGE-ih3gg/exec';
+  var st=document.getElementById('status'),btn=document.getElementById('send');
+  function toB64(f){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(String(r.result).split(',')[1]||'');};r.onerror=function(){no(new Error('No se pudo leer el archivo'));};r.readAsDataURL(f);});}
+  function openWA(w,url){
+    if(w&&!w.closed){w.location.href=url;return;}
+    st.innerHTML='Pedido listo. <a href="'+url+'" target="_blank" rel="noopener">Continuar en WhatsApp</a>';
+  }
   document.getElementById('f').addEventListener('submit',function(e){
     e.preventDefault();
-    var m='Hola Sr_Nube3D, soy '+document.getElementById('n').value+'. Quiero cotizar: '+document.getElementById('t').value+'. Detalles: '+document.getElementById('d').value+extra();
-    window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(m),'_blank','noopener');
+    var nombre=document.getElementById('n').value,f=fi.files[0];
+    var m='Hola Sr_Nube3D, soy '+nombre+'. Quiero cotizar: '+document.getElementById('t').value+'. Detalles: '+document.getElementById('d').value+extra();
+    var url='https://wa.me/'+WA+'?text='+encodeURIComponent(m);
+    if(!f){window.open(url,'_blank','noopener');return;}
+    var w=window.open('about:blank','_blank');
+    btn.disabled=true;st.textContent='Subiendo tu archivo, no cierres la página...';
+    toB64(f).then(function(b64){
+      return fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({nombre:nombre,resumen:m,nombreArchivo:f.name,archivo:b64})});
+    }).then(function(r){return r.json();}).then(function(j){
+      if(!j.ok)throw new Error(j.error||'Error al subir');
+      st.textContent='Archivo recibido. Abriendo WhatsApp...';
+      openWA(w,url);
+    }).catch(function(){
+      st.innerHTML='No pude subir el archivo. <a href="'+url+'" target="_blank" rel="noopener">Continuar en WhatsApp</a> y adjúntalo ahí con el clip.';
+      if(w&&!w.closed)w.close();
+    }).then(function(){btn.disabled=false;});
   });
 })();
 </script>
