@@ -56,7 +56,7 @@ h2{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:800;letter-spacing:-.015em;m
 .steps p{margin:0;color:var(--muted)}
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
 .proj{margin:0}
-.thumb{display:block;width:100%;aspect-ratio:4/3;border-radius:16px;overflow:hidden;border:1px solid var(--line);padding:0;background:var(--surface);cursor:pointer}
+.thumb{display:block;width:100%;aspect-ratio:3/4;border-radius:16px;overflow:hidden;border:1px solid var(--line);padding:0;background:var(--surface);cursor:pointer}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .thumb.empty{cursor:default;display:grid;place-items:center;background:repeating-linear-gradient(0deg,var(--line) 0 6px,var(--surface) 6px 12px);color:var(--muted);font-weight:600}
 .thumb.empty span{background:var(--surface);padding:.35rem .8rem;border-radius:999px}
@@ -175,7 +175,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem}
 <script>
 (function(){
   // Agrega tus trabajos aquí: {src:'data:image/jpeg;base64,...',titulo:'Nombre',desc:'Detalle'}
-  var PROYECTOS=[];
+  var PROYECTOS=[{src:'img/organizador-escritorio.jpg',titulo:'Organizador de escritorio',desc:'Con soporte para celular y portalápices'},{src:'img/soporte-control.jpg',titulo:'Soporte para control',desc:'Base para control de consola'},{src:'img/piezas-funcionales.jpg',titulo:'Piezas funcionales',desc:'Engranaje y soporte mecánico'},{src:'img/dragon.jpg',titulo:'Dragón low poly',desc:'Figura coleccionable'},{src:'img/soporte-audifonos.jpg',titulo:'Soporte para audífonos',desc:'Diseño de mano articulada'},{src:'img/macetero.jpg',titulo:'Macetero geométrico',desc:'Para suculentas y escritorio'},{src:'img/prototipos.jpg',titulo:'Prototipos',desc:'Carcasa y rueda para validar diseños'},{src:'img/llavero-logo.jpg',titulo:'Diseños personalizados',desc:'Logo en relieve y llavero'}];
   var gal=document.getElementById('gal'),lb=document.getElementById('lb'),items=PROYECTOS.slice();
   while(items.length<6)items.push(null);
   items.forEach(function(p){
